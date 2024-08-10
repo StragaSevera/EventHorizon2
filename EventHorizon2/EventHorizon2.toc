@@ -1,0 +1,23 @@
+## Interface: 110000
+## Title: EventHorizon2
+## Notes: Rotation helper that gives a glimpse into the future
+## Author: StragaSevera
+## Version: 0.0.1
+## Dependencies:
+## SavedVariables: EventHorizon2DBG
+## SavedVariablesPerCharacter: EventHorizon2DB
+
+init.lua
+events.lua
+EventHorizon2.lua
+config.lua
+# myconfig.lua
+trinkets.lua
+
+# Custom myconfigs not in existing folder
+# You can specify class configs in the below files, but due to the Curse Client deleting all folders before unzip
+# it'll delete any myconfig.lua files that exist.
+# Thus, if you create an EventHorizon2_Configs folder along side EventHorizon2's folders, you can stick specific configs there
+# and they'll be used over config/myconfigs.
+# TODO: Enable
+#..\EventHorizon2_Configs\core_my_config.lua
