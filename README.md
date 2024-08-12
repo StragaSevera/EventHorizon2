@@ -11,3 +11,29 @@ As a person who enjoys this addon so much that I cannot play WoW without it, I w
 What will this give us? It will give up opportunities to improve this addon - even as radical as (gasp!) having a GUI configuration. That's right, in the (far) future there might be no need for a casual user to tinker with Lua code in the config files!
 
 So, good luck to me. It will be long, hard, and I don't give any promises on when it will end. But it will be done. Eventually.
+
+## Code style notes
+### Imports and exports
+This addon uses an ad-hoc structure where different files "talk" to each other only via imports and exports. At the top of the file there should be something like:
+
+```lua
+local _, EHZ = ...
+
+-- Imports
+local debug = EHZ.debug
+local export = EHZ.export
+```
+
+And at the bottom there should be something like:
+
+```lua
+export("Frames", {
+    frames = frames
+})
+```
+
+The only place where we are allowed to mention the namespace table is the imports region. Why? Because we want our file dependencies to be explicit in order to have pressure to minimize them ;-)
+
+### Capitalization
+
+I'm not sure about it. For now I want the "global" things like frames and lifecycles to be capitalized, and the "local" things to be downcased.

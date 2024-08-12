@@ -8,7 +8,12 @@
 ## SavedVariablesPerCharacter: EventHorizon2DB
 
 init.lua
+utils.lua
+database.lua
 events.lua
+frames/frames.lua
+frames/lifecycle.lua
+frames/main.lua
 EventHorizon2.lua
 config.lua
 # myconfig.lua
