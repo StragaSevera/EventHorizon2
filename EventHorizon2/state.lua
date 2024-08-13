@@ -10,6 +10,7 @@ local colors = EHZ.Config.colors
 local exemptColors = EHZ.exemptColors
 
 local CLASSCOLORS = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
+local GetSpellInfo = C_Spell.GetSpellInfo
 --
 
 local state = {
@@ -17,11 +18,12 @@ local state = {
     visibleFrame = true,
     numframes = 0,
     buff = {},
-    debuff = {},
+    debuff = {}
 }
 
 local settings = {}
 
+-- TODO: Split into colors-layous
 local function InitSettings()
     table.wipe(settings)
 
@@ -95,11 +97,27 @@ local function InitSettings()
         __index = config
     })
 
-        -- ns:ModuleEvent('ApplyConfig')
+    -- ns:ModuleEvent('ApplyConfig')
+end
+
+local function InitState()
+    InitSettings()
+
+    state.gcdSpellName = settings.gcdSpellID and (GetSpellInfo(settings.gcdSpellID))
+
+    -- TODO: Remove theis "old haste" logic
+    if not (settings.hastedSpellID and type(settings.hastedSpellID) == 'table') then
+        state.useOldHaste = true
+    end
+    if settings.nonAffectingHaste then
+        if type(settings.nonAffectingHaste[1]) == 'number' then
+            settings.nonAffectingHaste = { settings.nonAffectingHaste }
+        end
+    end
 end
 
 export("State", {
     state = state,
     settings = settings,
-    InitSettings = InitSettings,
+    InitState = InitState,
 })

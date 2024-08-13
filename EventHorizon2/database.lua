@@ -87,6 +87,7 @@ exportProfile = exportDelayed(currentProfileEntity, function() return currentPro
 
 export("Database", {
     InitDB = InitDB,
+    defaultDB = defaultDB,
     dbEntity = dbEntity,
     currentProfileEntity = currentProfileEntity
 })

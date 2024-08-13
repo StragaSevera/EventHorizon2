@@ -11,7 +11,7 @@ local colors = EHZ.Config.colors
 
 local frames = {
     config = {},    -- validated barframe config entries - format = ns.frames.config[i] = {barconfig}
-    list = {},    -- all loaded barframes
+    list = {},      -- all loaded barframes
     active = {},    -- refs to barframes currently collecting information (matches talent spec)
     shown = {},     -- refs to barframes currently visible to the player (matches stance)
     mouseover = {}, -- refs to barframes requiring mouseover target information
@@ -24,6 +24,38 @@ local MainFrame = CreateFrame('Frame', nil, EventHorizonFrame)
 local frame2 = CreateFrame('Frame')
 local frame3 = CreateFrame('Frame')
 
+local function createNowIndicator()
+    local nowIndicator = MainFrame:CreateTexture(nil, 'ARTWORK', nil, drawOrder.nowI)
+    nowIndicator:SetPoint('BOTTOM', MainFrame, 'BOTTOM')
+    nowIndicator:SetPoint('TOPLEFT', MainFrame, 'TOPLEFT', settings.nowleft, 0)
+    nowIndicator:SetWidth(state.onepixelwide)
+    nowIndicator:SetColorTexture(unpack(colors.nowLine))
+    if settings.blendModes.nowLine and type(settings.blendModes.nowLine) == 'string' then
+        nowIndicator:SetBlendMode(settings.blendModes.nowLine)
+    end
+    return nowIndicator
+end
+
+local function createGcd()
+    local gcd = MainFrame:CreateTexture(nil, 'ARTWORK', nil, drawOrder.gcd)
+    gcd:SetPoint('BOTTOM', MainFrame, 'BOTTOM')
+    gcd:SetPoint('TOP', MainFrame, 'TOP')
+    gcd:Hide()
+
+    if settings.gcdStyle == 'line' then
+        gcd:SetWidth(state.onepixelwide)
+    else
+        gcd:SetPoint('LEFT', MainFrame, 'LEFT', settings.nowleft, 0)
+    end
+
+    local gcdColor = colors.gcdColor or { .5, .5, .5, .3 }
+    gcd:SetColorTexture(unpack(gcdColor))
+    if settings.blendModes.gcdColor and type(settings.blendModes.gcdColor) == 'string' then
+        gcd:SetBlendMode(settings.blendModes.gcdColor)
+    end
+    return gcd
+end
+
 local function InitFrames()
     MainFrame:init()
 
@@ -35,15 +67,10 @@ local function InitFrames()
         state.onepixelwide = 1 / effectiveScale
     end
 
-    local nowIndicator = MainFrame:CreateTexture(nil, 'ARTWORK', nil, drawOrder.nowI)
-    nowIndicator:SetPoint('BOTTOM', MainFrame, 'BOTTOM')
-    nowIndicator:SetPoint('TOPLEFT', MainFrame, 'TOPLEFT', settings.nowleft, 0)
-    nowIndicator:SetWidth(state.onepixelwide)
-    nowIndicator:SetColorTexture(unpack(colors.nowLine))
-    if settings.blendModes.nowLine and type(settings.blendModes.nowLine) == 'string' then
-        nowIndicator:SetBlendMode(settings.blendModes.nowLine)
+    frames.list.nowIndicator = createNowIndicator()
+    if state.gcdSpellName and settings.gcdStyle then
+        frames.list.gcd = createGcd()
     end
-    frames.list.nowIndicator = nowIndicator
 end
 
 export("Frames", {
