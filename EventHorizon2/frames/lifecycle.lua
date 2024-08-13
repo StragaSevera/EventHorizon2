@@ -4,11 +4,16 @@ local _, EHZ = ...
 local debug = EHZ.debug
 local export = EHZ.export
 local importDelayed = EHZ.importDelayed
-local vars = EHZ.vars
+local state = EHZ.State.state
+local settings = EHZ.State.settings
+local InitSettings = EHZ.State.InitSettings
 local clone = EHZ.Utils.clone
 local EventHandler = EHZ.Events.EventHandler
 local InitDB = EHZ.Database.InitDB
+local InitFrames = EHZ.Frames.InitFrames
+
 local db, dbg; importDelayed(EHZ.Database.dbEntity, function(...) db, dbg = ... end)
+local currentProfile; importDelayed(EHZ.Database.currentProfileEntity, function(...) currentProfile = ... end)
 --
 
 local frame = CreateFrame('Frame')
@@ -60,20 +65,6 @@ frame.PLAYER_LOGIN = function(self)
     end
 end
 
-function Load()
-    if frame.isReady then return end
-    frame.isReady = true
-    self:CheckRequirements()
-    self:LoadModules()
-
-    debug("frames shown " .. #self.frames.shown)
-    if #self.frames.shown < 1 then
-        ns:DisplayEmptyFrameTip()
-    else
-        ns.mainFrame:Show()
-    end
-end
-
 --[[
 Should only be called after the DB is loaded and spell and talent information is available.
 --]]
@@ -81,80 +72,26 @@ function Initialize()
     debug("Initializing...")
     InitDB()
 
-    debug('GetTalentInfo(1,1)', GetTalentInfo(1, 1))
-    vars.playerguid = UnitGUID('player')
+    -- debug('GetTalentInfo(1, 1, 1)', GetTalentInfo(1, 1, 1))
 
-    vars.buff.player = {}
+    state.playerguid = UnitGUID('player')
+    state.buff.player = {}
 
+    --[[
     if not self:LoadClassModule() then
         return
     end
+    ]]
 
-    self:ApplyConfig()
+    InitSettings()
 
-    if self.config.showTrinketBars and self.config.showTrinketBars == true then
-        self:NewSpell({ slotID = 13 })
-        self:NewSpell({ slotID = 14 })
-    end
+    -- TODO: Add trinkets
+    -- if config.showTrinketBars and config.showTrinketBars == true then
+    --     self:NewSpell({ slotID = 13 })
+    --     self:NewSpell({ slotID = 14 })
+    -- end
 
-    local sfi = self.config.hideIcons
-    MainFrame:SetWidth(vars.barwidth + (sfi and 0 or self.config.height))
-
-    self:SetupStyleFrame() -- Spawn backdrop frame.
-
-    -- Create the indicator for the current time.
-    -- Bugfix: When the UI scale is at a very low setting, textures with a width of 1
-    -- were not visible in some resolutions.
-    local effectiveScale = MainFrame:GetEffectiveScale()
-    if effectiveScale then
-        vars.onepixelwide = 1 / effectiveScale
-    end
-    --nowI = CreateFrame('Frame',nil,mainFrame)
-    --nowI:SetFrameLevel(20)
-    ns.frames.nowIndicator = MainFrame:CreateTexture(nil, 'ARTWORK', nil, draworder.nowI)
-
-    ns.frames.nowIndicator:SetPoint('BOTTOM', MainFrame, 'BOTTOM')
-    ns.frames.nowIndicator:SetPoint('TOPLEFT', MainFrame, 'TOPLEFT', vars.nowleft, 0)
-    ns.frames.nowIndicator:SetWidth(vars.onepixelwide)
-    ns.frames.nowIndicator:SetColorTexture(unpack(self.colors.nowLine))
-    if self.config.blendModes.nowLine and type(self.config.blendModes.nowLine) == 'string' then
-        ns.frames.nowIndicator:SetBlendMode(self.config.blendModes.nowLine)
-    end
-
-    local anchor = self.config.anchor or { 'TOPRIGHT', 'EventHorizonHandle', 'BOTTOMRIGHT' }
-    if anchor[2] == 'EventHorizonHandle' then
-        -- Create the handle to reposition the frame.
-        handle = CreateFrame('Frame', 'EventHorizonHandle', MainFrame)
-        handle:SetFrameStrata('HIGH')
-        handle:SetWidth(10)
-        handle:SetHeight(5)
-        handle:EnableMouse(true)
-        handle:SetClampedToScreen(1)
-        handle:RegisterForDrag('LeftButton')
-        handle:SetScript('OnDragStart', function(handle, button) handle:StartMoving() end)
-        handle:SetScript('OnDragStop', function(handle)
-            handle:StopMovingOrSizing()
-            local a, b, c, d, e = handle:GetPoint(1)
-            if type(b) == 'frame' then
-                b = b:GetName()
-            end
-            EventHorizon2DB.point = { a, b, c, d, e }
-        end)
-        handle:SetMovable(true)
-
-        MainFrame:SetPoint(unpack(anchor))
-        handle:SetPoint(unpack(EventHorizon2DB.point))
-
-        handle.tex = handle:CreateTexture(nil, 'ARTWORK', nil, 7)
-        handle.tex:SetAllPoints()
-        handle:SetScript('OnEnter', function(frame) frame.tex:SetColorTexture(1, 1, 1, 1) end)
-        handle:SetScript('OnLeave', function(frame) frame.tex:SetColorTexture(1, 1, 1, 0.1) end)
-        handle.tex:SetColorTexture(1, 1, 1, 0.1)
-
-        if EventHorizon2DB.isLocked then
-            handle:Hide()
-        end
-    end
+    InitFrames()
 
     vars.gcdSpellName = self.config.gcdSpellID and (GetSpellInfo(self.config.gcdSpellID))
     if vars.gcdSpellName and self.config.gcdStyle then
@@ -273,6 +210,20 @@ function Initialize()
 
     ns.mainFrame:Hide() -- Hide EH until the config loads
     ns:Load()
+end
+
+local function Load()
+    if frame.isReady then return end
+    frame.isReady = true
+    self:CheckRequirements()
+    self:LoadModules()
+
+    debug("frames shown " .. #self.frames.shown)
+    if #self.frames.shown < 1 then
+        ns:DisplayEmptyFrameTip()
+    else
+        ns.mainFrame:Show()
+    end
 end
 
 export("Frames.Lifecycle", {

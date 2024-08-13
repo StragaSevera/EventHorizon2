@@ -14,7 +14,7 @@ local drawOrder = EHZ.drawOrder
 
 local SpellFrame = EHZ.Frames.SpellFrame
 local EventHorizonFrame = EHZ.Frames.EventHorizonFrame
-local MainFrame = EHZ.Frames.Main.MainFrame
+local MainFrame = EHZ.Frames.MainFrame
 local frame = EHZ.Frames.frame
 local frame2 = EHZ.Frames.frame2
 local frame3 = EHZ.Frames.frame3
@@ -2317,82 +2317,6 @@ function ns:DisplayEmptyFrameTip()
     end
 end
 
-function ns:ApplyConfig()
-    table.wipe(ns.vars.config)
-    local config = {}
-    local ppc = EventHorizonDBG.profilePerChar[playername] -- EventHorizonDBG.profilePerChar[playername] = 'ProfileName'
-    if ppc then
-        config = EventHorizonDBG.profiles[ppc]             -- EventHorizon.profiles[ProfileName] = {overriddenConfig}
-    end
-    setmetatable(config, { __index = ns.config })          -- Set non-overridden values to what is in [my]config.lua
-    self:InitializeClass()                                 -- Set config values in class modules
-
-    vars.past = -math.abs(config.past or -3)               -- We really don't want config.past to be positive, so negative absolute values work great here.
-    vars.future = math.abs(config.future or 9)
-    vars.barheight = config.height or 18
-    vars.barwidth = config.width or 150
-    vars.barspacing = config.spacing or 0
-    vars.scale = 1 / (vars.future - vars.past)
-    vars.bartexture = config.bartexture or 'Interface\\Addons\\EventHorizon\\Smooth'
-    vars.texturedbars = config.texturedbars
-    vars.texturealpha = config.texturealphamultiplier or 1
-    vars.classburn = config.classburn or 0.7
-    vars.classalpha = config.classalpha or 0.3
-    vars.castLine = config.castLine and
-        ((type(config.castLine) == 'number' and config.castLine) or config.castLine == true and 0) or nil
-    vars.nowleft = -vars.past / (vars.future - vars.past) * vars.barwidth - 0.5 +
-        (config.hideIcons and 0 or config.height)
-
-    local classcolors = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
-    self.classcolor = clone(classcolors[select(2, UnitClass('player'))])
-
-    vars.stackFont = config.stackFont
-    vars.stackFontSize = config.stackFontSize
-    vars.stackFontColor = config.stackFontColor == true and { 1, 1, 1, 1 } or config.stackFontColor or { 1, 1, 1, 1 }
-    vars.stackFontShadow = config.stackFontShadow == true and { 0, 0, 0, 0.5 } or config.stackFontShadow or
-    { 0, 0, 0, 0.5 }
-    vars.stackFontShadowOffset = config.stackFontShadowOffset == true and { 1, -1 } or config.stackFontShadowOffset or
-        { 1, -1 }
-
-    for colorid, color in pairs(self.colors) do
-        if color[1] == true then
-            if color[2] then
-                self.colors[colorid] = { self.classcolor.r * color[2], self.classcolor.g * color[2], self.classcolor.b *
-                color[2], color[3] or vars.classalpha } -- For really bad reasons, this took a very long time to get right...
-            else
-                self.colors[colorid] = { self.classcolor.r, self.classcolor.g, self.classcolor.b, vars.classalpha }
-            end
-        end
-    end
-
-    if vars.texturedbars then
-        for colorid, color in pairs(self.colors) do
-            if color[4] and not (exemptColors[colorid]) then
-                color[4] = vars.texturealpha * color[4]
-            end
-        end
-    end
-
-    local layouts = self.layouts
-    layouts.frameline = {
-        top = 0,
-        bottom = 1,
-    }
-    local default = layouts.default
-    for typeid, layout in pairs(layouts) do
-        if typeid ~= 'default' then
-            for k, v in pairs(default) do
-                if layout[k] == nil then
-                    layout[k] = v
-                end
-            end
-        end
-        layout.texcoords = { 0, 1, layout.top, layout.bottom }
-    end
-
-    ns:ModuleEvent('ApplyConfig')
-end
-
 function ns:UpdateConfig()
     if not (self.isReady) then return end
     self:ApplyConfig()
@@ -2473,38 +2397,6 @@ local loginCheck = function()
             if spellframe.slotID then spellframe:PLAYER_EQUIPMENT_CHANGED(spellframe.slotID) end
         end
     end
-end
-
-function ns:SetupStyleFrame()
-    local c = self.config.backdrop
-    if c then
-        if not (self.styleframe) then self.styleframe = CreateFrame('Frame', nil, MainFrame) end
-    else
-        if self.styleframe then self.styleframe:Hide() end
-        return
-    end
-
-    local styleframe = self.styleframe
-    local stylebg = self.config.bg or 'Interface\\ChatFrame\\ChatFrameBackground'
-    local styleborder = self.config.border or 'Interface\\Tooltips\\UI-Tooltip-Border'
-    local stylebgcolor = self.colors.bgcolor or { 0, 0, 0, 0.6 }
-    local stylebordercolor = self.colors.bordercolor or { 1, 1, 1, 1 }
-    local styleinset = self.config.inset or { top = 2, bottom = 2, left = 2, right = 2 }
-    local stylepadding = self.config.padding or 3
-    local styleedge = self.config.edgesize or 8
-
-    styleframe:SetFrameStrata('BACKGROUND')
-    styleframe:SetPoint('TOPRIGHT', MainFrame, 'TOPRIGHT', stylepadding, stylepadding)
-    styleframe:SetPoint('BOTTOMLEFT', MainFrame, 'BOTTOMLEFT', -stylepadding, -stylepadding)
-    styleframe:SetBackdrop({
-        bgFile = stylebg,
-        edgeFile = styleborder,
-        tileSize = 0,
-        edgeSize = styleedge,
-        insets = styleinset,
-    })
-    styleframe:SetBackdropColor(unpack(stylebgcolor))
-    styleframe:SetBackdropBorderColor(unpack(stylebordercolor))
 end
 
 function ns:RegisterModule(module, namespace)

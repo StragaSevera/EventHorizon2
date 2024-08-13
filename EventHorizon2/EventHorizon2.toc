@@ -9,14 +9,15 @@
 
 init.lua
 utils.lua
+config.lua
+# myconfig.lua
+state.lua
 database.lua
 events.lua
 frames/frames.lua
-frames/lifecycle.lua
 frames/main.lua
+frames/lifecycle.lua
 EventHorizon2.lua
-config.lua
-# myconfig.lua
 trinkets.lua
 
 # Custom myconfigs not in existing folder

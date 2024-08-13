@@ -304,15 +304,6 @@ local colors = {}
 local otherIDs = {} -- combatlog events either not directly tied to bars, or using spells other than bar.spellID
 local modules = {}  -- storage for loaded modules - format = module = modules[string.lower(moduleName)] = {namespace}
 
-local vars = {      -- storage for widely used vars/math/etc - format = vars[var] = val
-    config = {},
-    onepixelwide = 1,
-    visibleFrame = true,
-    numframes = 0,
-    buff = {},
-    debuff = {},
-}
-
 local drawOrder = {
     default = -8,
     cooldown = -7,
@@ -431,7 +422,6 @@ export({
     colors = colors,
     otherIDs = otherIDs,
     modules = modules,
-    vars = vars,
     drawOrder = drawOrder,
     auraids = auraids,
     exemptColors = exemptColors,

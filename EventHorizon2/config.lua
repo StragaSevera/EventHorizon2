@@ -1,7 +1,13 @@
-local EHN,ns = ...
+local _, EHZ = ...
 
-local config = EventHorizon.config
-local c = EventHorizon.colors
+-- Imports
+local debug = EHZ.debug
+local export = EHZ.export
+--
+
+local config = {}
+local colors = {}
+local layouts
 
 local _,class = UnitClass('player')  -- These locals make in-line conditions a little easier. See the color section for a few examples.
 local DK = class == "DEATHKNIGHT"
@@ -21,6 +27,8 @@ config.showTrinketBars = false      -- Show bars for your equipped trinkets? Def
 config.castLine = true          -- Show a full-frame line at the end of casts/channels? Default = true (show for all casts). Setting this to a number will set the lower limit accordingly. ie, config.castLine = 0.5 will show all casts over 0.5 seconds. Setting this to 0 will show the line for all casts no matter what.
 config.gcdStyle = 'line'        -- 'line' = show a thin line for the GCD. 'bar' = show a full-frame shrinking bar for the gcd (looks good at a dark color and low opacity, set within the color table). false = disable GCD handling.
 
+-- TODO: Find out the redshift initialization
+config.Redshift = {}
 config.enableRedshift = false      -- Enable Redshift's show/hide functions? Default = false
 config.Redshift.showCombat = true     -- Always show EH in combat. Default = true
 config.Redshift.showHarm = true      -- Show EH if targeting an attackable unit, in or out of combat. Default = true
@@ -68,23 +76,22 @@ config.stackOnRight = false                     -- Changes the position of the s
 
 -- The format for the color section is {Red, Green, Blue, Opacity/Alpha}. To color a bar or indicator by class, use {true, <burn>, <alpha>}.
 -- <burn> means color intensity - 0.5 burn darkens a color by 50%. 1.2 lightens it by 20%. 1 is baseline.
-local c = EventHorizon.colors
-c.sent = {true,Priest and 0.7 or 1,0.5}      -- Marker line when a spellcast is sent to the server. Default = {true,Priest and 0.7 or 1,0.5} (class colored, dimmed a bit if you're a Priest, 50% opacity)
-c.tick = {true,Priest and 0.7 or 1,1}      -- Tick markers. Default = {true,Priest and 0.7 or 1,1} (class colored, dimmed a bit if you're a Priest, opaque)
-c.channeltick = {0,1,0.2,0.25}          -- Tick markers for channeled spells. Default is the same as casting.
-c.casting = {0,1,0.2,0.25}              -- Casting bars. Default = {0,1,0,0.25} (green, 0.25 unmodified alpha)
-c.castLine = {0,1,0,0.3}            -- The end-of-cast line, shown for casts and channels over 1.5 seconds. Default = {0,1,0,0.3} (green, 0.3 unmodified alpha)
-c.cooldown = {0.6,0.8,1,0.3}            -- Cooldown bars. Default = {0.6,0.8,1,0.3} (mute teal, 0.3 unmodified alpha)
-c.recharge = {0.6,0.8,1,0.3}            -- Recharge bars. Default = {0.6,0.8,1,0.3} (mute teal, 0.3 unmodified alpha)
-c.debuffmine = {true,Priest and 0.7 or 1,0.3}  -- YOUR debuff bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
-c.debuff = {true,0.5,0.3}            -- OTHER PLAYERS' debuff bars. Default = {true,0.5,0.3} (class colored, darkened by 50%, 0.3 unmodified alpha)
-c.playerbuff = {true,Priest and 0.7 or 1,0.3}  -- Buff bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
-c.timerAfterCast = {true,Priest and 0.7 or 1,0.3}  -- Timer bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
-c.nowLine = {1,1,1,0.3}              -- The "Now" line.
-c.bgcolor = {0,0,0,0.6}              -- Color of the frame's background. Default = {0,0,0,0.6} (black, 60% opacity)
-c.bordercolor = {1,1,1,1}            -- Color of the frame's border. Default = {1,1,1,1} (white, fully opaque)
-c.gcdColor = {1,1,1,0.5}            -- Color of the GCD indicator. Default = {1,1,1,0.5}
-c.barbgcolor = {1,1,1,0.1}            -- Color of bar backgrounds. Default = {1,1,1,0.1} (barely visible)
+colors.sent = {true,Priest and 0.7 or 1,0.5}      -- Marker line when a spellcast is sent to the server. Default = {true,Priest and 0.7 or 1,0.5} (class colored, dimmed a bit if you're a Priest, 50% opacity)
+colors.tick = {true,Priest and 0.7 or 1,1}      -- Tick markers. Default = {true,Priest and 0.7 or 1,1} (class colored, dimmed a bit if you're a Priest, opaque)
+colors.channeltick = {0,1,0.2,0.25}          -- Tick markers for channeled spells. Default is the same as casting.
+colors.casting = {0,1,0.2,0.25}              -- Casting bars. Default = {0,1,0,0.25} (green, 0.25 unmodified alpha)
+colors.castLine = {0,1,0,0.3}            -- The end-of-cast line, shown for casts and channels over 1.5 seconds. Default = {0,1,0,0.3} (green, 0.3 unmodified alpha)
+colors.cooldown = {0.6,0.8,1,0.3}            -- Cooldown bars. Default = {0.6,0.8,1,0.3} (mute teal, 0.3 unmodified alpha)
+colors.recharge = {0.6,0.8,1,0.3}            -- Recharge bars. Default = {0.6,0.8,1,0.3} (mute teal, 0.3 unmodified alpha)
+colors.debuffmine = {true,Priest and 0.7 or 1,0.3}  -- YOUR debuff bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
+colors.debuff = {true,0.5,0.3}            -- OTHER PLAYERS' debuff bars. Default = {true,0.5,0.3} (class colored, darkened by 50%, 0.3 unmodified alpha)
+colors.playerbuff = {true,Priest and 0.7 or 1,0.3}  -- Buff bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
+colors.timerAfterCast = {true,Priest and 0.7 or 1,0.3}  -- Timer bars. Default = {true,Priest and 0.7 or 1,0.3} (class colored, dimmed a bit if you're a Priest, 0.3 unmodified alpha)
+colors.nowLine = {1,1,1,0.3}              -- The "Now" line.
+colors.bgcolor = {0,0,0,0.6}              -- Color of the frame's background. Default = {0,0,0,0.6} (black, 60% opacity)
+colors.bordercolor = {1,1,1,1}            -- Color of the frame's border. Default = {1,1,1,1} (white, fully opaque)
+colors.gcdColor = {1,1,1,0.5}            -- Color of the GCD indicator. Default = {1,1,1,0.5}
+colors.barbgcolor = {1,1,1,0.1}            -- Color of bar backgrounds. Default = {1,1,1,0.1} (barely visible)
 
 --[[ This table adjusts blending modes for most portions of EventHorizon. These are not normally usable on Statusbar objects, which EventHorizon is fairly unique about not using.
 From wowprogramming.com's descriptions (which are very apt):
@@ -114,7 +121,7 @@ config.blendModes = {
 
 -- This little table judges the thickness and positioning of each bar element.
 -- It's all done by percentages, from the top of the bar. 0 is the absolute top, 0.35 is 35% down from there, 0.5 is halfway down the bar, etc. 1 is the bottom of the bar. Yes, you can use numbers greater than 1, but it will probably look odd.
-EventHorizon.layouts = {    -- You can actually add anything from the table above here, segments just inherit off 'default' if they're not included. Just tinker with the numbers if you want to see how it works.
+layouts = {    -- You can actually add anything from the table above here, segments just inherit off 'default' if they're not included. Just tinker with the numbers if you want to see how it works.
   tick = {          -- Tick markers.
     top = 0,
     bottom = 0.12,
@@ -140,3 +147,9 @@ EventHorizon.layouts = {    -- You can actually add anything from the table abov
     bottom = 1,
   },
 }
+
+export("Config", {
+  config = config,
+  colors = colors,
+  layouts = layouts,
+})

@@ -43,7 +43,6 @@ end
 
 local function InitDB()
     if not EventHorizon2DB or isTableEmpty(EventHorizon2DB) then EventHorizon2DB = clone(defaultDB) end
-    debug('initdb')
     local reset = false
     -- Upgrade DB.
     if EventHorizon2DB and not EventHorizon2DB.version then
